@@ -4,7 +4,7 @@ on: push
 
 jobs:
   selenium-run:
-    runs-on: windows-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
