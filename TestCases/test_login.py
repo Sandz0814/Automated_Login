@@ -8,7 +8,7 @@ class TestLogin:
 
     def test_login(self):
 
-        driver = webdriver.Edge()
+        driver = webdriver.Chrome()
         driver.get('https://admin-demo.nopcommerce.com/login')
         driver.implicitly_wait(10)
         driver.maximize_window()
