@@ -1,8 +1,11 @@
 name: End-to-end tests
+
 on: push
+
 jobs:
   selenium-run:
     runs-on: windows-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,6 +21,53 @@ jobs:
           pip install selenium
           pip install pytest
 
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          CHROME_DRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`
+          wget -N https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv -f chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
+
       - name: Run Selenium tests with pytest
         run: |
-          pytest
+          pytest --junitxml=results.xml
+
+      - name: Generate test summary
+        id: summary
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const results = fs.readFileSync('results.xml', 'utf8');
+            const { parseString } = require('xml2js');
+            parseString(results, (err, result) => {
+              if (err) {
+                throw err;
+              }
+
+              const tests = result.testsuite.$.tests;
+              const failures = result.testsuite.$.failures;
+              const errors = result.testsuite.$.errors;
+              const skipped = result.testsuite.$.skipped;
+
+              return `### Test Summary
+              - Total Tests: ${tests}
+              - Failures: ${failures}
+              - Errors: ${errors}
+              - Skipped: ${skipped}`;
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: results.xml
