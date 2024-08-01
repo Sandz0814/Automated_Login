@@ -1,40 +1,36 @@
-import time
-from selenium import webdriver
-from selenium.webdriver.common.by import By
 import pytest
+from POM.LoginPage import LoginPages
 
 
+@pytest.mark.usefixtures("setup")
 class TestLogin:
 
-    def test_login(self):
+    def test_login(self, setup):
+        self.driver = setup
+        self.login = LoginPages(self.driver)
 
-        driver = webdriver.Edge()
-        driver.get('https://admin-demo.nopcommerce.com/login')
-        driver.implicitly_wait(10)
-        driver.maximize_window()
+        assert "Admin area demo" in self.login.verify_logo()
 
-        logo = driver.find_element(By.XPATH, "//h1[normalize-space()='Admin area demo']")
-        logo_text = logo.text
-        assert "Admin area demo" in logo_text
+        self.login.verify_input_email('admin@yourstore.com')
 
-        email = driver.find_element(By.XPATH, "//input[@id='Email']")
-        email.clear()
+        self.login.verify_input_password('admin')
 
-        email.send_keys('admin@yourstore.com')
+        self.login.verify_login_btn()
 
-        password = driver.find_element(By.XPATH, "//input[@id='Password']")
-        password.clear()
+        assert 'Logout' in self.login.verify_login_if_successful()
 
-        password.send_keys('admin')
 
-        login_btn = driver.find_element(By.XPATH, "//button[normalize-space()='Log in']")
-        login_btn.click()
 
-        logout = driver.find_element(By.XPATH, "//a[normalize-space()='Logout']").is_displayed()
 
-        if logout:
-            print('User Successfully logging in')
-            assert True
+
+
+
+
+
+
+
+
+
 
 
 
