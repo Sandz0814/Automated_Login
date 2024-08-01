@@ -8,7 +8,7 @@ def setup(request):
     # options = Options()
     # options.add_argument("--headless")
     # driver = webdriver.Edge(options=options)
-    driver = webdriver.Edge()
+    driver = webdriver.Chrome()
     driver.get('https://admin-demo.nopcommerce.com/login')
     driver.implicitly_wait(10)
     driver.maximize_window()
